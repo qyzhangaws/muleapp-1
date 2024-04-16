@@ -1,0 +1,28 @@
+version: 0.2
+env: 
+  parameter-store:
+    SETTINGS: "mule-1-settings"
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto8
+  pre_build:
+    commands:
+      - echo "${SETTINGS}" > ./settings.xml
+      - cp ./settings.xml /root/.m2/settings.xml    
+      - mvn -version  
+      - mvn clean
+  build:
+    commands:   
+      - mvn package -DskipTests -X
+  post_build:
+    commands: 
+      - echo "deploy to exchange asset"
+      - mvn deploy -DskipTests -X
+      - echo "deploy to CloudHub 2.0"
+      - mvn deploy -DmuleDeploy -DskipTests -X
+artifacts:
+  files:
+    - ./target/*.jar
+  discard-paths: yes
